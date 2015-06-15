@@ -2,13 +2,19 @@
 <head>
 <title>Movie Picker</title>
 
+<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.4/css/bootstrap.min.css" />
+<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.4/css/bootstrap-theme.min.css" />
+
 <!-- Load external scripts, falling back to local copies if unreachable or offline -->
 
 <script src="//cdnjs.cloudflare.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>
-<script type="text/javascript">window.jQuery || document.write('<script src="assets/jquery.min.js"><\/script>')</script>
+<script type="text/javascript">window.jQuery || document.write('<script src="assets/jquery-2.1.4.min.js"><\/script>')</script>
 
 <script src="//cdnjs.cloudflare.com/ajax/libs/angular.js/1.3.16/angular.min.js"></script>
-<script type="text/javascript">window.angular || document.write('<script src="assets/angular.min.js"><\/script>')</script>
+<script type="text/javascript">window.angular || document.write('<script src="assets/angular-1.3.16.min.js"><\/script>')</script>
+
+<script src="//cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.4/js/bootstrap.min.js"></script>
+<script type="text/javascript">typeof $().modal == 'function' || document.write('<script src="assets/bootstrap-3.3.4.min.js"><\/script>')</script>
 
 <!-- https://code.google.com/p/jquery-csv/wiki/API -->
 <script src="//cdnjs.cloudflare.com/ajax/libs/jquery-csv/0.71/jquery.csv-0.71.min.js"></script>
@@ -90,19 +96,44 @@ moviePicker.controller('moviePickerController', function($scope){
     $scope.movieChoices = [];
     var movieOptionList = $.extend(true, [], $scope.movieOptionList);
 
-    // If there are not enough options, return entire list
+    // If there are not enough options, return entire list. Otherwise, choose a random selection
     if ($scope.options.choices < movieOptionList.length) {
       for(var i = 0; i < $scope.options.choices; i++) {
         var randomIndex = Math.floor(Math.random() * movieOptionList.length);
         $scope.movieChoices.push(movieOptionList[randomIndex]);
         movieOptionList.splice(randomIndex, 1);
       }
-      $scope.showOptions($scope.movieChoices);
     } else {
-      $scope.showOptions(movieOptionList);
-      console.warn("Too few options available");
+      $scope.movieChoices = movieOptionList;
+      console.warn("Too few options available--returning entire list");
+    }
+
+    if(online) {$scope.getMoviePoster();}
+    $scope.showOptions($scope.movieChoices);
+  };
+
+  /**
+  * @function - getMoviePoster retrieves the movie poster for each of the movie selections
+  */
+  $scope.getMoviePoster = function() {
+    for(var i = 0; i < $scope.movieChoices.length; i++) {
+      $.ajax({
+        async: false,
+        type: "GET",
+        url: "http://www.omdbapi.com/?i=" + $scope.movieChoices[i].const + "&plot=short&r=json",
+        dataType: "json",
+        success: function(data) {
+          if (data.Poster) {$scope.movieChoices[i].poster = data.Poster;}
+          // $scope.$apply();
+        },
+        error: function(data) {
+          console.error("Failed to get cover art: " + $scope.movieChoices[i]);
+        }
+      });
     }
   };
+
+
 
   /**
   * @function - showOptions displays a list of movie options to pick from
@@ -201,7 +232,7 @@ moviePicker.controller('moviePickerController', function($scope){
           $scope.$apply();
         },
         error: function(data) {
-          console.error("Failed to load movie list: ");
+          console.error("Failed to load movie list: " + $scope.list);
         }
     });
   };
@@ -222,13 +253,36 @@ moviePicker.controller('moviePickerController', function($scope){
 });
 </script>
 <style type="text/css">
-  .sortorder:after {
-    content: '\25b2';
-  }
+.sortorder:after {
+  content: '\25b2';
+}
 
-  .sortorder.reverse:after {
-    content: '\25bc';
-  }
+.sortorder.reverse:after {
+  content: '\25bc';
+}
+
+.movie-options {
+  flex-direction: row;
+  display: flex;
+  justify-content: center;
+  align-content: space-between;
+}
+
+.movie-wrapper {
+  margin:auto;
+  width: 125px;
+}
+
+.movie-wrapper img {
+  width: 100%;
+}
+
+@media (min-width: 768px) {
+.modal-dialog {
+  width: 700px;
+  margin: 18px auto;
+}
+}
 </style>
 </head>
 <body ng-controller="moviePickerController">
@@ -279,18 +333,11 @@ moviePicker.controller('moviePickerController', function($scope){
         TV Series
       </label>
 
-      <button type="submit">Limit</button>
-      <button data-ng-click="helpMeChoose()">Help me choose!</button>
-      <button data-ng-click="clearAll()">Clear All</button>
+      <button type="submit" class="btn btn-primary">Limit</button>
+      <a href="#resultsModal" class="btn btn-primary" data-toggle="modal" data-ng-click="helpMeChoose()">Help me choose!</a>
+      <button class="btn btn-default" data-ng-click="clearAll()">Clear All</button>
     </fieldset>
   </form>
-
-  <div data-ng-if="movieChoices">
-    <div class="movie-wrapper" data-ng-repeat="movie in movieChoices">
-      <h4>{{movie.Title}}</h4>
-      <p>{{movie["Runtime (mins)"]}}</p>
-    </div>
-  </div>
 
 <!-- TODO: Add loading state -->
 
@@ -317,6 +364,31 @@ moviePicker.controller('moviePickerController', function($scope){
       </tr>
     </tbody>
   </table>
+
+  <!-- Modal HTML -->
+  <div id="resultsModal" class="modal fade">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+          <h4 class="modal-title">Here you go, you indecisive people!</h4>
+        </div>
+        <div class="modal-body">
+          <div class="movie-options" data-ng-if="movieChoices">
+            <div class="movie-wrapper" data-ng-repeat="movie in movieChoices">
+              <img ng-src="{{movie.poster}}" />
+              <h4>{{movie.Title}}</h4>
+              <p>{{movie["Runtime (mins)"]}} minutes</p>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+          <button type="button" class="btn btn-primary" data-ng-click="helpMeChoose()">Try again!</button>
+        </div>
+      </div>
+    </div>
+  </div>
 
 </body>
 </html>
