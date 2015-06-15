@@ -8,17 +8,17 @@
 <!-- Load external scripts, falling back to local copies if unreachable or offline -->
 
 <script src="//cdnjs.cloudflare.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>
-<script type="text/javascript">window.jQuery || document.write('<script src="assets/jquery-2.1.4.min.js"><\/script>')</script>
+<script type="text/javascript">window.jQuery || document.write('<script src="assets/js/jquery-2.1.4.min.js"><\/script>')</script>
 
 <script src="//cdnjs.cloudflare.com/ajax/libs/angular.js/1.3.16/angular.min.js"></script>
-<script type="text/javascript">window.angular || document.write('<script src="assets/angular-1.3.16.min.js"><\/script>')</script>
+<script type="text/javascript">window.angular || document.write('<script src="assets/js/angular-1.3.16.min.js"><\/script>')</script>
 
 <script src="//cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.4/js/bootstrap.min.js"></script>
-<script type="text/javascript">typeof $().modal == 'function' || document.write('<script src="assets/bootstrap-3.3.4.min.js"><\/script>')</script>
+<script type="text/javascript">typeof $().modal == 'function' || document.write('<script src="assets/js/bootstrap-3.3.4.min.js"><\/script>')</script>
 
 <!-- https://code.google.com/p/jquery-csv/wiki/API -->
 <script src="//cdnjs.cloudflare.com/ajax/libs/jquery-csv/0.71/jquery.csv-0.71.min.js"></script>
-<script type="text/javascript">window.jQuery.csv || document.write('<script src="assets/jquery.csv-0.71.min.js"><\/script>')</script>
+<script type="text/javascript">window.jQuery.csv || document.write('<script src="assets/js/jquery.csv-0.71.min.js"><\/script>')</script>
 <script type="text/javascript">
 
 var moviePicker = angular.module('moviePicker',[]);
@@ -108,32 +108,37 @@ moviePicker.controller('moviePickerController', function($scope){
       console.warn("Too few options available--returning entire list");
     }
 
-    if(online) {$scope.getMoviePoster();}
+    if(online) {$scope.getMoviePosters();}
     $scope.showOptions($scope.movieChoices);
   };
 
   /**
-  * @function - getMoviePoster retrieves the movie poster for each of the movie selections
+  * @function - getMoviePosters retrieves the movie poster for each of the movie selections
   */
-  $scope.getMoviePoster = function() {
-    for(var i = 0; i < $scope.movieChoices.length; i++) {
-      $.ajax({
-        async: false,
-        type: "GET",
-        url: "http://www.omdbapi.com/?i=" + $scope.movieChoices[i].const + "&plot=short&r=json",
-        dataType: "json",
-        success: function(data) {
-          if (data.Poster) {$scope.movieChoices[i].poster = data.Poster;}
-          // $scope.$apply();
-        },
-        error: function(data) {
-          console.error("Failed to get cover art: " + $scope.movieChoices[i]);
+  $scope.getMoviePosters = function() {
+    var promises = $($scope.movieChoices).map(function(index, movie) {
+      if(movie.const) {
+        return $.ajax({
+          type: "GET",
+          url: "http://www.omdbapi.com/?i=" + movie.const + "&plot=short&r=json",
+          dataType: "json"
+        });
+      } else {
+        return false;
+      }
+    });
+
+    $.when.apply($, promises).then(function() {
+      for (var i = 0; i < arguments.length; i++) {
+        if(arguments[i][0].Poster && arguments[i][0].Poster !== "N/A") {
+          $scope.movieChoices[i].poster = arguments[i][0].Poster;
+        } else {
+          $scope.movieChoices[i].poster = "assets/img/no-image.png";
         }
-      });
-    }
+        $scope.$apply();
+      }
+    });
   };
-
-
 
   /**
   * @function - showOptions displays a list of movie options to pick from
@@ -211,8 +216,8 @@ moviePicker.controller('moviePickerController', function($scope){
   };
 
   $scope.movieLists = [
-    "sample-imdb-export.csv",
-    "MyMovies- DVD.csv"
+    "MyMovies- DVD.csv",
+    "sample-imdb-export.csv"
   ];
 
   // List defaults
@@ -269,11 +274,15 @@ moviePicker.controller('moviePickerController', function($scope){
 }
 
 .movie-wrapper {
-  margin:auto;
+  margin: 0 auto;
   width: 125px;
 }
 
-.movie-wrapper img {
+.image-wrapper {
+  height: 200px;
+}
+
+.image-wrapper img {
   width: 100%;
 }
 
@@ -376,7 +385,9 @@ moviePicker.controller('moviePickerController', function($scope){
         <div class="modal-body">
           <div class="movie-options" data-ng-if="movieChoices">
             <div class="movie-wrapper" data-ng-repeat="movie in movieChoices">
-              <img ng-src="{{movie.poster}}" />
+              <div class="image-wrapper">
+                <img ng-src="{{movie.poster}}" />
+              </div>
               <h4>{{movie.Title}}</h4>
               <p>{{movie["Runtime (mins)"]}} minutes</p>
             </div>
