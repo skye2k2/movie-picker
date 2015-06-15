@@ -1,0 +1,322 @@
+<html ng-app="moviePicker">
+<head>
+<title>Movie Picker</title>
+
+<!-- Load external scripts, falling back to local copies if unreachable or offline -->
+
+<script src="//cdnjs.cloudflare.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>
+<script type="text/javascript">window.jQuery || document.write('<script src="assets/jquery.min.js"><\/script>')</script>
+
+<script src="//cdnjs.cloudflare.com/ajax/libs/angular.js/1.3.16/angular.min.js"></script>
+<script type="text/javascript">window.angular || document.write('<script src="assets/angular.min.js"><\/script>')</script>
+
+<!-- https://code.google.com/p/jquery-csv/wiki/API -->
+<script src="//cdnjs.cloudflare.com/ajax/libs/jquery-csv/0.71/jquery.csv-0.71.min.js"></script>
+<script type="text/javascript">window.jQuery.csv || document.write('<script src="assets/jquery.csv-0.71.min.js"><\/script>')</script>
+<script type="text/javascript">
+
+var moviePicker = angular.module('moviePicker',[]);
+
+moviePicker.controller('moviePickerController', function($scope){
+  var online = navigator.onLine;
+
+  /**
+  * @function - helpMeChooseOptions filters the list of movies for watching options, based on the provided criteria or anti-criteria (number of options, genre, runTime)
+  */
+  $scope.helpMeChooseOptions = function() {
+    // $scope.movieOptionList = angular.copy($scope.movieList);
+    $scope.movieOptionList = $.extend(true, [], $scope.movieList);
+    var selectionsArray = [],
+        antiSelectionsArray = [],
+        option;
+
+    for(option in $scope.options.antiSelections) {
+      if($scope.options.antiSelections[option] === true) {
+        antiSelectionsArray.push(option);
+      }
+    }
+
+    for(option in $scope.options.selections) {
+      if($scope.options.selections[option] === true) {
+        selectionsArray.push(option);
+      }
+    }
+
+// LOGIC ON SELECTORS AND ANTISELECTORS IN COMBINATION IS BEING WEIRD--NEED TO LOOP SEPARATELY THROUGH POSITIVE AND NEGATIVE SELECTORS OR GATE BY A FLAG THAT KEEPS TRACK OF IF A MOVIE HAS BEEN REMOVED ALREADY
+
+    // Filter movie list by selections
+    for(var i = $scope.movieOptionList.length - 1; i >= 0; i--) {
+      var matched = false;
+      movie = $scope.movieOptionList[i];
+
+      // Check if movie run time is less than time limit
+      if ($scope.options.timeLimit && parseInt(movie["Runtime (mins)"], 10) > $scope.options.timeLimit) {
+        $scope.movieOptionList.splice(i, 1);
+      }
+
+      // Pick from only TV series or full-length features
+      if($scope.options.movieType && movie["Title type"] != $scope.options.movieType) {
+        $scope.movieOptionList.splice(i, 1);
+      }
+
+      // Check if movie has a genre matching antiSelections
+      for(var j in antiSelectionsArray) {
+        if (movie && movie.Genres.includes(antiSelectionsArray[j])) {
+          $scope.movieOptionList.splice(i, 1);
+          break;
+        }
+      }
+
+      // Check if movie has a genre matching selections
+      if(selectionsArray.length) {
+        for(var j in selectionsArray) {
+          if (movie && movie.Genres.includes(selectionsArray[j])) {
+            matched = true;
+            break;
+          }
+        }
+        if (!matched) {
+          $scope.movieOptionList.splice(i, 1);
+        }
+      }
+    }
+  };
+
+  /**
+  * @function - helpMeChoose will automatically pick a random selection of movies from the watching options
+  */
+  $scope.helpMeChoose = function() {
+    $scope.helpMeChooseOptions();
+    $scope.movieChoices = [];
+    var movieOptionList = $.extend(true, [], $scope.movieOptionList);
+
+    // If there are not enough options, return entire list
+    if ($scope.options.choices < movieOptionList.length) {
+      for(var i = 0; i < $scope.options.choices; i++) {
+        var randomIndex = Math.floor(Math.random() * movieOptionList.length);
+        $scope.movieChoices.push(movieOptionList[randomIndex]);
+        movieOptionList.splice(randomIndex, 1);
+      }
+      $scope.showOptions($scope.movieChoices);
+    } else {
+      $scope.showOptions(movieOptionList);
+      console.warn("Too few options available");
+    }
+  };
+
+  /**
+  * @function - showOptions displays a list of movie options to pick from
+  * @param "array" movieChoices - The movie choices randomly selected
+  */
+  $scope.showOptions = function(movieChoices) {
+    // console.warn(movieChoices);
+  };
+
+  /**
+  * @function - clearAll restores the original movie list and clears all limiting options
+  */
+  $scope.clearAll = function() {
+    $scope.options = {
+      choices: 3,
+      selections: {},
+      antiSelections: {}
+    };
+    $scope.movieChoices = [];
+    $scope.movieOptionList = $scope.movieList;
+  };
+
+  /**
+  * @function - order automatically sorts the movieList, based on which column heading was clicked on. Reverses sort order if the same column was clicked twice.
+  * @param "string" predicate - The column heading that was clicked
+  */
+  $scope.order = function(predicate) {
+    $scope.reverse = ($scope.predicate === predicate) ? !$scope.reverse : false;
+    $scope.predicate = predicate;
+  };
+
+  /**
+  * @function - filterFunction automatically filters the movieList, based on what was entered into the search filter. Filters on both movie.Title and movie.Genre
+  * @param "object" element - The movie that needs the filtering applied
+  */
+  $scope.filterFunction = function(element) {
+    return (element.Title.match(/^Ma/) || element.Genre.match(/^Ma/)) ? true : false;
+  };
+
+  // TODO: Create external settings file to house all defaults
+
+  // Default limiting options
+  $scope.options = {
+    choices: 3,
+    totalChoices: 5,
+    movieType: "Feature Film",
+    selections: {},
+    antiSelections: {}
+
+  };
+
+  $scope.genres = [
+    "action",
+    "adventure",
+    "animation",
+    "comedy",
+    "crime",
+    "drama",
+    "family",
+    "fantasy",
+    "horror",
+    "mystery",
+    "romance",
+    "thriller",
+    "western",
+    "sci_fi",
+    "war"
+  ];
+
+  // The columns that will be displayed in the movie list
+  $scope.columns = {
+    "Title": true,
+    "Genres": true,
+    "Runtime (mins)": true
+  };
+
+  $scope.movieLists = [
+    "sample-imdb-export.csv",
+    "MyMovies- DVD.csv"
+  ];
+
+  // List defaults
+  $scope.list = $scope.movieLists[0];
+  $scope.predicate = 'Title';
+  $scope.reverse = false;
+
+  $scope.loadList = function() {
+    $.ajax({
+        type: "GET",
+        url: "lists/" + $scope.list,
+        dataType: "text",
+        success: function(data) {
+          // Load IMDB export file into array of JSON objects
+          $scope.movieOptionList = $scope.movieList = $.csv.toObjects(data);
+          // Apply to get the page content to load
+          $scope.$apply();
+        },
+        error: function(data) {
+          console.error("Failed to load movie list: ");
+        }
+    });
+  };
+
+  $scope.$watch('$viewContentLoaded', function(){
+    $scope.loadList();
+  });
+
+  $scope.$watch('list', function(){
+    $scope.loadList();
+  });
+})
+
+.filter('reverse', function() {
+  return function(items) {
+    return items.slice().reverse();
+  };
+});
+</script>
+<style type="text/css">
+  .sortorder:after {
+    content: '\25b2';
+  }
+
+  .sortorder.reverse:after {
+    content: '\25bc';
+  }
+</style>
+</head>
+<body ng-controller="moviePickerController">
+
+  <form data-ng-submit="helpMeChooseOptions()">
+    <fieldset>
+      <legend>Limits:</legend>
+      <div class="inclusions">
+        <p>Genre(s) toInclude:</p>
+        <label data-ng-repeat="genre in genres">
+          <input type="checkbox"
+            data-ng-model="options.selections[genre]"
+            data-ng-value="genre" />
+            {{genre}}
+        </label>
+      </div>
+      <div class="exclusions">
+        <p>Genre(s) toExclude:</p>
+        <label data-ng-repeat="genre in genres">
+          <input type="checkbox"
+            data-ng-model="options.antiSelections[genre]"
+            data-ng-value="genre" />
+            {{genre}}
+        </label>
+      </div>
+      Number of Choices: <select data-ng-model="options.choices" name="choices" convert-to-number>
+        <option value="1"> 1 </option>
+        <option value="2"> 2 </option>
+        <option value="3"> 3 </option>
+        <option value="4"> 4 </option>
+        <option value="5"> 5 </option>
+      </select>
+      <!-- TODO: Limit input to numbers -->
+      Time limit: <input data-ng-model="options.timeLimit" type="text" placeholder="in minutes" />
+
+      <label>
+        <input type="radio"
+          ng-model="options.movieType"
+          value="Feature Film"
+          [name="movieType"] />
+        Feature Film
+      </label>
+      <label>
+        <input type="radio"
+          ng-model="options.movieType"
+          value="TV Series"
+          [name="movieType"] />
+        TV Series
+      </label>
+
+      <button type="submit">Limit</button>
+      <button data-ng-click="helpMeChoose()">Help me choose!</button>
+      <button data-ng-click="clearAll()">Clear All</button>
+    </fieldset>
+  </form>
+
+  <div data-ng-if="movieChoices">
+    <div class="movie-wrapper" data-ng-repeat="movie in movieChoices">
+      <h4>{{movie.Title}}</h4>
+      <p>{{movie["Runtime (mins)"]}}</p>
+    </div>
+  </div>
+
+<!-- TODO: Add loading state -->
+
+  Movie List: <select data-ng-model="list" name="movieListFileName">
+    <option data-ng-repeat="fileName in movieLists" value="{{fileName}}"> {{fileName}} </option>
+  </select>
+
+  <form>
+    <input data-ng-model="searchfilter" type="text" placeholder="Filter by (Title or Genre)" autofocus>
+  </form>
+
+  <table class="table table-striped table-bordered">
+    <caption>{{list}} ({{movieOptionList.length}})</caption>
+    <thead>
+      <tr>
+        <th data-ng-repeat="(key,val) in movieOptionList[0]" data-ng-if="columns[key] == true" ng-click="order(key)">{{key}}
+          <span class="sortorder" ng-show="predicate == key" ng-class="{reverse: !reverse}"></span>
+        </th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr data-ng-repeat="movie in movieOptionList | orderBy:predicate:reverse | filter:searchfilter track by $index">
+        <td data-ng-repeat="(key,val) in movie" data-ng-if="columns[key] == true">{{val}}</td>
+      </tr>
+    </tbody>
+  </table>
+
+</body>
+</html>
