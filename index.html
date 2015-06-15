@@ -133,6 +133,7 @@ moviePicker.controller('moviePickerController', function($scope){
   * @function - getMovieDetails retrieves the movie poster for each of the movie selections
   */
   $scope.getMovieDetails = function() {
+    $scope.movieDetailsloading = true;
     var promises = $($scope.movieChoices).map(function(index, movie) {
       if(movie.const) {
         return $.ajax({
@@ -157,9 +158,14 @@ moviePicker.controller('moviePickerController', function($scope){
         } else {
           $scope.movieChoices[i].plot = "No plot";
         }
-        $scope.$apply();
       }
+      $scope.movieDetailsloading = false;
+      $scope.$apply();
     });
+  };
+
+  $scope.removeOption = function(index) {
+    $scope.movieChoices.splice(index, 1);
   };
 
   /**
@@ -201,6 +207,8 @@ moviePicker.controller('moviePickerController', function($scope){
   };
 
   // TODO: Create external settings file to house all defaults
+
+  $scope.movieDetailsloading = true;
 
   // Default limiting options
   $scope.options = {
@@ -271,6 +279,12 @@ moviePicker.controller('moviePickerController', function($scope){
   $scope.$watch('list', function(){
     $scope.loadList();
   });
+
+  $("#resultsModal")
+  .on("shown.bs.modal", function() {
+    document.activeElement.blur();
+    $("#resultsModal .btn-primary").focus();
+  });
 })
 
 .filter('reverse', function() {
@@ -302,6 +316,11 @@ moviePicker.controller('moviePickerController', function($scope){
 
 .image-wrapper {
   height: 200px;
+  overflow: hidden;
+}
+
+.image-wrapper:hover {
+  cursor: no-drop;
 }
 
 .image-wrapper img {
@@ -400,26 +419,29 @@ moviePicker.controller('moviePickerController', function($scope){
   <div id="resultsModal" class="modal fade">
     <div class="modal-dialog">
       <div class="modal-content">
-        <div class="modal-header">
-          <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-          <h4 class="modal-title">Here you go, you indecisive people!</h4>
-        </div>
-        <div class="modal-body">
-          <div class="movie-options" data-ng-if="movieChoices">
-            <div class="movie-wrapper" data-ng-repeat="movie in movieChoices">
-              <div class="image-wrapper">
-                <img ng-src="{{movie.poster}}" />
+        <form data-ng-submit="helpMeChoose()">
+          <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+            <h4 class="modal-title">Here you go, you indecisive people!</h4>
+          </div>
+          <div class="modal-body">
+            <div class="movie-options" data-ng-if="movieChoices">
+              <div class="movie-wrapper" data-ng-repeat="movie in movieChoices track by $index">
+                <div class="image-wrapper" data-ng-click="removeOption($index)" title="Remove this option">
+                  <img class="placeholder" ng-src="assets/img/no-image.png" data-ng-if="movieDetailsloading" />
+                  <img data-ng-src="{{movie.poster}}" data-ng-if="!movieDetailsloading" />
+                </div>
+                <h4 data-ng-if="movie.Title">{{movie.Title}}</h4>
+                <p data-ng-if="movie['Runtime (mins)']">{{movie["Runtime (mins)"]}} minutes</p>
+                <p class="small" data-ng-if="movie.plot">{{movie.plot}}</p>
               </div>
-              <h4 data-ng-if="movie.Title">{{movie.Title}}</h4>
-              <p data-ng-if="movie[Runtime (mins)]">{{movie["Runtime (mins)"]}} minutes</p>
-              <p class="small" data-ng-if="movie.plot">{{movie.plot}}</p>
             </div>
           </div>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-          <button type="button" class="btn btn-primary" data-ng-click="helpMeChoose()">Try again!</button>
-        </div>
+          <div class="modal-footer">
+              <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+              <button type="submit" class="btn btn-primary">Try again!</button>
+          </div>
+        </form>
       </div>
     </div>
   </div>
