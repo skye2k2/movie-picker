@@ -52,37 +52,50 @@ moviePicker.controller('moviePickerController', function($scope){
 
     // Filter movie list by selections
     for(var i = $scope.movieOptionList.length - 1; i >= 0; i--) {
-      var matched = false;
-      movie = $scope.movieOptionList[i];
+      var matched = false,
+          removed = false,
+          movie = $scope.movieOptionList[i];
 
       // Check if movie run time is less than time limit
-      if ($scope.options.timeLimit && parseInt(movie["Runtime (mins)"], 10) > $scope.options.timeLimit) {
-        $scope.movieOptionList.splice(i, 1);
+      if(!removed) {
+        if ($scope.options.timeLimit && parseInt(movie["Runtime (mins)"], 10) > $scope.options.timeLimit) {
+          $scope.movieOptionList.splice(i, 1);
+          removed = true;
+        }
       }
 
       // Pick from only TV series or full-length features
-      if($scope.options.movieType && movie["Title type"] != $scope.options.movieType) {
-        $scope.movieOptionList.splice(i, 1);
+      if(!removed) {
+        if($scope.options.movieType && movie["Title type"] != $scope.options.movieType) {
+          $scope.movieOptionList.splice(i, 1);
+          removed = true;
+        }
       }
 
       // Check if movie has a genre matching antiSelections
-      for(var j in antiSelectionsArray) {
-        if (movie && movie.Genres.includes(antiSelectionsArray[j])) {
-          $scope.movieOptionList.splice(i, 1);
-          break;
+      if(!removed) {
+        for(var j in antiSelectionsArray) {
+          if (movie && movie.Genres.includes(antiSelectionsArray[j])) {
+            $scope.movieOptionList.splice(i, 1);
+            removed = true;
+            break;
+          }
         }
       }
 
       // Check if movie has a genre matching selections
-      if(selectionsArray.length) {
-        for(var j in selectionsArray) {
-          if (movie && movie.Genres.includes(selectionsArray[j])) {
-            matched = true;
-            break;
+      if(!removed) {
+        if(selectionsArray.length) {
+          for(var j in selectionsArray) {
+            if (movie && movie.Genres.includes(selectionsArray[j])) {
+              matched = true;
+              break;
+            }
           }
-        }
-        if (!matched) {
-          $scope.movieOptionList.splice(i, 1);
+          if (!matched) {
+            $scope.movieOptionList.splice(i, 1);
+            removed = true;
+          }
         }
       }
     }
@@ -108,14 +121,18 @@ moviePicker.controller('moviePickerController', function($scope){
       console.warn("Too few options available--returning entire list");
     }
 
-    if(online) {$scope.getMoviePosters();}
-    $scope.showOptions($scope.movieChoices);
+    if($scope.movieChoices.length) {
+      if(online) {$scope.getMovieDetails();}
+      $scope.showOptions($scope.movieChoices);
+    } else {
+      console.warn("No movies match the selected filters");
+    }
   };
 
   /**
-  * @function - getMoviePosters retrieves the movie poster for each of the movie selections
+  * @function - getMovieDetails retrieves the movie poster for each of the movie selections
   */
-  $scope.getMoviePosters = function() {
+  $scope.getMovieDetails = function() {
     var promises = $($scope.movieChoices).map(function(index, movie) {
       if(movie.const) {
         return $.ajax({
@@ -134,6 +151,11 @@ moviePicker.controller('moviePickerController', function($scope){
           $scope.movieChoices[i].poster = arguments[i][0].Poster;
         } else {
           $scope.movieChoices[i].poster = "assets/img/no-image.png";
+        }
+        if(arguments[i][0].Plot && arguments[i][0].Plot !== "N/A") {
+          $scope.movieChoices[i].plot = arguments[i][0].Plot;
+        } else {
+          $scope.movieChoices[i].plot = "No plot";
         }
         $scope.$apply();
       }
@@ -388,8 +410,9 @@ moviePicker.controller('moviePickerController', function($scope){
               <div class="image-wrapper">
                 <img ng-src="{{movie.poster}}" />
               </div>
-              <h4>{{movie.Title}}</h4>
-              <p>{{movie["Runtime (mins)"]}} minutes</p>
+              <h4 data-ng-if="movie.Title">{{movie.Title}}</h4>
+              <p data-ng-if="movie[Runtime (mins)]">{{movie["Runtime (mins)"]}} minutes</p>
+              <p class="small" data-ng-if="movie.plot">{{movie.plot}}</p>
             </div>
           </div>
         </div>
