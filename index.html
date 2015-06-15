@@ -294,6 +294,43 @@ moviePicker.controller('moviePickerController', function($scope){
 });
 </script>
 <style type="text/css">
+
+/* Begin Bootstrap overrides */
+
+@media (min-width: 768px) {
+.modal-dialog {
+  width: 700px;
+  margin: 18px auto;
+}
+}
+
+body {
+  margin: 0 auto;
+  max-width: 1000px;
+}
+
+caption {
+  background-color: #eee;
+  border: 1px solid #000;
+  color: #333;
+  font-weight: bold;
+  text-align: center;
+}
+
+legend {
+  margin-bottom: 10px;
+}
+
+input[type=checkbox], input[type=radio] {
+  margin: 4px 0 0 10px;
+}
+
+.table {
+  width: auto;
+}
+
+/* End Bootstrap overrides */
+
 .sortorder:after {
   content: '\25b2';
 }
@@ -302,6 +339,11 @@ moviePicker.controller('moviePickerController', function($scope){
   content: '\25bc';
 }
 
+.advanced-filters {
+  padding: 10px;
+}
+
+.genre-filters,
 .movie-options {
   flex-direction: row;
   display: flex;
@@ -309,9 +351,44 @@ moviePicker.controller('moviePickerController', function($scope){
   align-content: space-between;
 }
 
+.inclusions,
+.exclusions,
 .movie-wrapper {
   margin: 0 auto;
+}
+
+.inclusions,
+.exclusions {
+  margin-bottom: 10px;
+  padding: 10px;
+  width: 50%;
+}
+
+.exclusions {
+  border-left: 1px solid #999;
+}
+
+.movie-wrapper {
   width: 125px;
+}
+
+.inclusions .checked {
+  color: #00B630;
+  font-style: normal;
+}
+
+.exclusions .checked {
+  color: #eb6800;
+  font-style: normal;
+}
+
+.inclusions .inverse-checked,
+.exclusions .inverse-checked {
+  font-style: italic;
+}
+
+.filter-buttons {
+  float: right;
 }
 
 .image-wrapper {
@@ -326,47 +403,33 @@ moviePicker.controller('moviePickerController', function($scope){
 .image-wrapper img {
   width: 100%;
 }
-
-@media (min-width: 768px) {
-.modal-dialog {
-  width: 700px;
-  margin: 18px auto;
-}
-}
 </style>
 </head>
 <body ng-controller="moviePickerController">
 
-  <form data-ng-submit="helpMeChooseOptions()">
+  <form class="advanced-filters" data-ng-submit="helpMeChooseOptions()">
     <fieldset>
-      <legend>Limits:</legend>
-      <div class="inclusions">
-        <p>Genre(s) toInclude:</p>
-        <label data-ng-repeat="genre in genres">
-          <input type="checkbox"
-            data-ng-model="options.selections[genre]"
-            data-ng-value="genre" />
-            {{genre}}
-        </label>
+      <legend>Advanced Filtering:</legend>
+      <div class="genre-filters">
+        <div class="inclusions">
+          <h4>Genre(s) to Include:</h4>
+          <label data-ng-class="{'checked': options.selections[genre], 'inverse-checked': options.antiSelections[genre]}" title="Include {{genre}}" data-ng-repeat="genre in genres">
+            <input type="checkbox"
+              data-ng-model="options.selections[genre]"
+              data-ng-value="genre" />
+              {{genre}}
+          </label>
+        </div>
+        <div class="exclusions">
+          <h4>Genre(s) to Exclude:</h4>
+          <label data-ng-class="{'checked': options.antiSelections[genre], 'inverse-checked': options.selections[genre]}" title="Exclude {{genre}}" data-ng-repeat="genre in genres">
+            <input type="checkbox"
+              data-ng-model="options.antiSelections[genre]"
+              data-ng-value="genre" />
+              {{genre}}
+          </label>
+        </div>
       </div>
-      <div class="exclusions">
-        <p>Genre(s) toExclude:</p>
-        <label data-ng-repeat="genre in genres">
-          <input type="checkbox"
-            data-ng-model="options.antiSelections[genre]"
-            data-ng-value="genre" />
-            {{genre}}
-        </label>
-      </div>
-      Number of Choices: <select data-ng-model="options.choices" name="choices" convert-to-number>
-        <option value="1"> 1 </option>
-        <option value="2"> 2 </option>
-        <option value="3"> 3 </option>
-        <option value="4"> 4 </option>
-        <option value="5"> 5 </option>
-      </select>
-      <!-- TODO: Limit input to numbers -->
-      Time limit: <input data-ng-model="options.timeLimit" type="text" placeholder="in minutes" />
 
       <label>
         <input type="radio"
@@ -382,10 +445,23 @@ moviePicker.controller('moviePickerController', function($scope){
           [name="movieType"] />
         TV Series
       </label>
+      <br />
+      <!-- TODO: Limit input to numbers -->
+      Time limit: <input data-ng-model="options.timeLimit" type="text" placeholder="in minutes" />
+      <br />
+      Number of Choices: <select data-ng-model="options.choices" name="choices" convert-to-number>
+        <option value="1"> 1 </option>
+        <option value="2"> 2 </option>
+        <option value="3"> 3 </option>
+        <option value="4"> 4 </option>
+        <option value="5"> 5 </option>
+      </select>
 
-      <button type="submit" class="btn btn-primary">Limit</button>
-      <a href="#resultsModal" class="btn btn-primary" data-toggle="modal" data-ng-click="helpMeChoose()">Help me choose!</a>
-      <button class="btn btn-default" data-ng-click="clearAll()">Clear All</button>
+      <div class="filter-buttons">
+        <button type="submit" class="btn btn-primary">Limit</button>
+        <a href="#resultsModal" class="btn btn-primary" data-toggle="modal" data-ng-click="helpMeChoose()">Help me choose!</a>
+        <button class="btn btn-default" data-ng-click="clearAll()">Clear All</button>
+      </div>
     </fieldset>
   </form>
 
