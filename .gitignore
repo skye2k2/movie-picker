@@ -1,0 +1,12 @@
+# Mac-specific files
+.DS_Store
+
+# Logs
+logs
+*.log
+
+# Movie list directory, except for example
+lists/*
+!lists/sample-imdb-export.csv
+
+*.sublime-workspace
