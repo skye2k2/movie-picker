@@ -298,14 +298,37 @@ moviePicker.controller('moviePickerController', function($scope){
 /* Begin Bootstrap overrides */
 
 @media (min-width: 768px) {
+.modal.fade .modal-dialog,
 .modal-dialog {
-  width: 700px;
   margin: 18px auto;
+  -webkit-transition: width 0.1s ease, transform 0.3s ease-out;
+  transition: width 0.1s ease, transform 0.3s ease-out;
+}
+
+.modal-dialog.one-option {
+  width: 260px;
+}
+
+.modal-dialog.two-options {
+  width: 360px;
+}
+
+.modal-dialog.three-options {
+  width: 490px;
+}
+
+.modal-dialog.four-options {
+  width: 640px;
+}
+
+.modal-dialog.five-options {
+  width: 768px;
 }
 }
 
 body {
   margin: 0 auto;
+  min-width: 625px;
   max-width: 1000px;
 }
 
@@ -343,12 +366,17 @@ input[type=checkbox], input[type=radio] {
   padding: 10px;
 }
 
+label:hover {
+  color: #666;
+  cursor: pointer;
+}
+
 .genre-filters,
 .movie-options {
-  flex-direction: row;
-  display: flex;
-  justify-content: center;
   align-content: space-between;
+  display: flex;
+  flex-flow: row wrap;
+  justify-content: center;
 }
 
 .inclusions,
@@ -369,15 +397,17 @@ input[type=checkbox], input[type=radio] {
 }
 
 .movie-wrapper {
-  width: 125px;
+  width: 140px;
 }
 
-.inclusions .checked {
+.inclusions .checked,
+.genre-filters .inclusions .checked:hover {
   color: #00B630;
   font-style: normal;
 }
 
-.exclusions .checked {
+.exclusions .checked,
+.genre-filters .exclusions .checked:hover {
   color: #eb6800;
   font-style: normal;
 }
@@ -493,7 +523,7 @@ input[type=checkbox], input[type=radio] {
 
   <!-- Modal HTML -->
   <div id="resultsModal" class="modal fade">
-    <div class="modal-dialog">
+    <div class="modal-dialog" data-ng-class="{'one-option': movieChoices.length == 1, 'two-options': movieChoices.length == 2, 'three-options': movieChoices.length == 3,'four-options': movieChoices.length == 4, 'five-options': movieChoices.length == 5}">
       <div class="modal-content">
         <form data-ng-submit="helpMeChoose()">
           <div class="modal-header">
