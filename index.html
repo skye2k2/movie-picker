@@ -48,8 +48,6 @@ moviePicker.controller('moviePickerController', function($scope){
       }
     }
 
-// LOGIC ON SELECTORS AND ANTISELECTORS IN COMBINATION IS BEING WEIRD--NEED TO LOOP SEPARATELY THROUGH POSITIVE AND NEGATIVE SELECTORS OR GATE BY A FLAG THAT KEEPS TRACK OF IF A MOVIE HAS BEEN REMOVED ALREADY
-
     // Filter movie list by selections
     for(var i = $scope.movieOptionList.length - 1; i >= 0; i--) {
       var matched = false,
@@ -217,7 +215,6 @@ moviePicker.controller('moviePickerController', function($scope){
     movieType: "Feature Film",
     selections: {},
     antiSelections: {}
-
   };
 
   $scope.genres = [
@@ -345,6 +342,7 @@ legend {
 }
 
 input[type=checkbox], input[type=radio] {
+  cursor: pointer;
   margin: 4px 0 0 10px;
 }
 
