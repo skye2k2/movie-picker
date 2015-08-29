@@ -23,6 +23,19 @@
 
 var moviePicker = angular.module('moviePicker',[]);
 
+/**
+* @filter - range returns an array that can be used to generate numeric select options
+*/
+moviePicker.filter('range', function() {
+  return function(input, min, max) {
+    min = parseInt(min);
+    max = parseInt(max);
+    for (var i=min; i<=max; i++)
+      input.push(i);
+    return input;
+  };
+});
+
 moviePicker.controller('moviePickerController', function($scope){
   var online = navigator.onLine;
 
@@ -50,7 +63,7 @@ moviePicker.controller('moviePickerController', function($scope){
 
     // Filter movie list by selections
     for(var i = $scope.movieOptionList.length - 1; i >= 0; i--) {
-      var matched = false,
+      var criteriaMet = false,
           removed = false,
           movie = $scope.movieOptionList[i];
 
@@ -86,14 +99,30 @@ moviePicker.controller('moviePickerController', function($scope){
         if(selectionsArray.length) {
           for(var j in selectionsArray) {
             if (movie && movie.Genres.includes(selectionsArray[j])) {
-              matched = true;
+              criteriaMet = true;
               break;
             }
           }
-          if (!matched) {
+          if (!criteriaMet) {
             $scope.movieOptionList.splice(i, 1);
             removed = true;
           }
+        }
+      }
+
+      // Check if movie user rating is above selected level
+      if(!removed) {
+        if($scope.options.userRating && movie["You rated"] < $scope.options.userRating) {
+          $scope.movieOptionList.splice(i, 1);
+          removed = true;
+        }
+      }
+
+      // Check if movie IMDB rating is above selected level
+      if(!removed) {
+        if($scope.options.IMDbRating && movie["IMDb Rating"] < $scope.options.IMDbRating) {
+          $scope.movieOptionList.splice(i, 1);
+          removed = true;
         }
       }
     }
@@ -181,7 +210,9 @@ moviePicker.controller('moviePickerController', function($scope){
     $scope.options = {
       choices: 3,
       selections: {},
-      antiSelections: {}
+      antiSelections: {},
+      userRating: null,
+      IMDbRating: null
     };
     $scope.movieChoices = [];
     $scope.movieOptionList = $scope.movieList;
@@ -214,7 +245,9 @@ moviePicker.controller('moviePickerController', function($scope){
     totalChoices: 5,
     movieType: "Feature Film",
     selections: {},
-    antiSelections: {}
+    antiSelections: {},
+    userRating: null,
+    IMDbRating: null
   };
 
   $scope.genres = [
@@ -477,13 +510,13 @@ label:hover {
       <!-- TODO: Limit input to numbers -->
       Time limit: <input data-ng-model="options.timeLimit" type="text" placeholder="in minutes" />
       <br />
-      Number of Choices: <select data-ng-model="options.choices" name="choices" convert-to-number>
-        <option value="1"> 1 </option>
-        <option value="2"> 2 </option>
-        <option value="3"> 3 </option>
-        <option value="4"> 4 </option>
-        <option value="5"> 5 </option>
-      </select>
+
+      User Rating: <select data-ng-model="options.userRating" name="choices" convert-to-number data-ng-options="n for n in [] | range:1:10"></select>
+
+      IMDb Rating: <select data-ng-model="options.IMDbRating" name="choices" convert-to-number data-ng-options="n for n in [] | range:1:10"></select>
+      <br /><br/>
+
+      Number of Choices: <select data-ng-model="options.choices" name="choices" convert-to-number data-ng-options="n for n in [] | range:1:5"></select>
 
       <div class="filter-buttons">
         <button type="submit" class="btn btn-primary">Limit</button>

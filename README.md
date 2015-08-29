@@ -9,6 +9,7 @@ Simple Angular application that imports, formats, and filters a .csv IMDB user d
 If this scenario sounds familiar, then you may be able to benefit from this little application as much as I have. :)
 
 ###Demo: <http://skye2k2.github.io/movie-picker/>
+Note: Demo is not able to load movie posters because the API blocks requests from the Github domain--they should load just fine, locally.
 
 How to use:
 ------
@@ -23,10 +24,12 @@ How to use:
 Features:
 ------
 - "Help me choose" randomly picks a number of filtered results as watching options for you
+- Uses OMDb API to fetch movie posters and descriptions in "Help me choose" mode
 - Utilizes cdnjs.cloudflare.com CDN
 - Falls back to local assets when offline (still need to get CSS to work)
 - Genre inclusion and exclusion
 - Filter feature films or TV series
+- Limit by user or IMDb rating
 - Switch between multiple lists
 - Quick live keyword filtering
 - Ascending/descending sort-ability
@@ -40,6 +43,7 @@ ChangeLog:
 Technologies:
 ------
 - IMDB
+- OMDb API
 - Angular
 - jQuery
 - jQuery.csv
@@ -48,7 +52,7 @@ Technologies:
 TODO:
 ------
 - Load a file by default from URL parameter
-- Limit by user rating
+- Make sort by runtime actually work
 - Load CSS from local files if offline
 - Large list performance
 - Single list isolation mode
