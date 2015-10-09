@@ -51,8 +51,10 @@ Technologies:
 
 TODO:
 ------
+- Selecting the inverse of an already-selected genre filter automatically deselects the previous filter
+- URL parameters for preset searches
+- Large list performance (bindonce)
 - Load a file by default from URL parameter
 - Make sort by runtime actually work
 - Load CSS from local files if offline
-- Large list performance
 - Single list isolation mode
