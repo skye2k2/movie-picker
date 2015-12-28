@@ -69,7 +69,7 @@ moviePicker.controller('moviePickerController', function($scope){
 
       // Check if movie run time is less than time limit
       if(!removed) {
-        if ($scope.options.timeLimit && parseInt(movie["Runtime (mins)"], 10) > $scope.options.timeLimit) {
+        if ($scope.options.timeLimit && movie["Runtime (mins)"] > $scope.options.timeLimit) {
           $scope.movieOptionList.splice(i, 1);
           removed = true;
         }
@@ -228,6 +228,23 @@ moviePicker.controller('moviePickerController', function($scope){
   };
 
   /**
+  * @function - filterGenre automatically disables the corresponding anti-filter when a filter is selected.
+  * @param "string" filter - The filter checkbox that was clicked
+  * @param "boolean" setting - Whether an include of exclude filter
+  */
+  $scope.filterGenre = function(filter, setting) {
+    if(setting) {
+      if($scope.options.selections[filter]) {
+        $scope.options.antiSelections[filter] = false;
+      }
+    } else {
+      if($scope.options.antiSelections[filter]) {
+        $scope.options.selections[filter] = false;
+      }
+    }
+  };
+
+  /**
   * @function - filterFunction automatically filters the movieList, based on what was entered into the search filter. Filters on both movie.Title and movie.Genre
   * @param "object" element - The movie that needs the filtering applied
   */
@@ -271,8 +288,11 @@ moviePicker.controller('moviePickerController', function($scope){
   // The columns that will be displayed in the movie list
   $scope.columns = {
     "Title": true,
+    "Runtime (mins)": true,
     "Genres": true,
-    "Runtime (mins)": true
+    "You rated": true,
+    "IMDb Rating": true
+
   };
 
   $scope.movieLists = [
@@ -292,7 +312,14 @@ moviePicker.controller('moviePickerController', function($scope){
         dataType: "text",
         success: function(data) {
           // Load IMDB export file into array of JSON objects
-          $scope.movieOptionList = $scope.movieList = $.csv.toObjects(data);
+          $scope.movieList = $.csv.toObjects(data);
+          // Parse numeric data
+          for (var i = 0; i < $scope.movieList.length; i++) {
+            $scope.movieList[i]["Runtime (mins)"] = parseInt($scope.movieList[i]["Runtime (mins)"], 10) || null;
+            $scope.movieList[i]["IMDb Rating"] = parseInt($scope.movieList[i]["IMDb Rating"], 10) || null;
+            $scope.movieList[i]["You rated"] = parseInt($scope.movieList[i]["You rated"], 10) || null;
+          }
+          $scope.movieOptionList = $scope.movieList;
           // Apply to get the page content to load
           $scope.$apply();
         },
@@ -476,6 +503,7 @@ label:hover {
           <h4>Genre(s) to Include:</h4>
           <label data-ng-class="{'checked': options.selections[genre], 'inverse-checked': options.antiSelections[genre]}" title="Include {{genre}}" data-ng-repeat="genre in genres">
             <input type="checkbox"
+              data-ng-click="filterGenre(genre, true)"
               data-ng-model="options.selections[genre]"
               data-ng-value="genre" />
               {{genre}}
@@ -485,6 +513,7 @@ label:hover {
           <h4>Genre(s) to Exclude:</h4>
           <label data-ng-class="{'checked': options.antiSelections[genre], 'inverse-checked': options.selections[genre]}" title="Exclude {{genre}}" data-ng-repeat="genre in genres">
             <input type="checkbox"
+              data-ng-click="filterGenre(genre, false)"
               data-ng-model="options.antiSelections[genre]"
               data-ng-value="genre" />
               {{genre}}
@@ -507,8 +536,8 @@ label:hover {
         TV Series
       </label>
       <br />
-      <!-- TODO: Limit input to numbers -->
-      Time limit: <input data-ng-model="options.timeLimit" type="text" placeholder="in minutes" />
+
+      Time limit: <input data-ng-model="options.timeLimit" type="number" placeholder="in minutes" />
       <br />
 
       User Rating: <select data-ng-model="options.userRating" name="choices" convert-to-number data-ng-options="n for n in [] | range:1:10"></select>

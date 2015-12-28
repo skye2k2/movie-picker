@@ -32,6 +32,7 @@ Features:
 - Limit by user or IMDb rating
 - Switch between multiple lists
 - Quick live keyword filtering
+- Selecting a genre filter automatically deselects its cooresponding anti-filter, and vice versa
 - Ascending/descending sort-ability
 
 
@@ -51,9 +52,13 @@ Technologies:
 
 TODO:
 ------
+<<<<<<< HEAD
 - Selecting the inverse of an already-selected genre filter automatically deselects the previous filter
 - URL parameters for preset searches
 - Large list performance (bindonce)
+=======
+- Restart "Help me choose" if a user removes all results
+>>>>>>> Display IMDb and user rating.
 - Load a file by default from URL parameter
 - Make sort by runtime actually work
 - Load CSS from local files if offline
