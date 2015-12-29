@@ -33,6 +33,7 @@ Features:
 - Switch between multiple lists
 - Quick live keyword filtering
 - Selecting a genre filter automatically deselects its cooresponding anti-filter, and vice versa
+- Restart "Help me choose" if a user removes all results
 - Ascending/descending sort-ability
 
 
@@ -52,9 +53,9 @@ Technologies:
 
 TODO:
 ------
-- Restart "Help me choose" if a user removes all results
+- URL parameters for preset searches
+- Large list performance (bindonce)
 - Load a file by default from URL parameter
-- Make sort by runtime actually work
+- Make sort by runtime and rating actually work
 - Load CSS from local files if offline
-- Large list performance
 - Single list isolation mode

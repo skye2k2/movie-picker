@@ -50,13 +50,13 @@ moviePicker.controller('moviePickerController', function($scope){
         option;
 
     for(option in $scope.options.antiSelections) {
-      if($scope.options.antiSelections[option] === true) {
+      if ($scope.options.antiSelections[option] === true) {
         antiSelectionsArray.push(option);
       }
     }
 
     for(option in $scope.options.selections) {
-      if($scope.options.selections[option] === true) {
+      if ($scope.options.selections[option] === true) {
         selectionsArray.push(option);
       }
     }
@@ -68,7 +68,7 @@ moviePicker.controller('moviePickerController', function($scope){
           movie = $scope.movieOptionList[i];
 
       // Check if movie run time is less than time limit
-      if(!removed) {
+      if (!removed) {
         if ($scope.options.timeLimit && movie["Runtime (mins)"] > $scope.options.timeLimit) {
           $scope.movieOptionList.splice(i, 1);
           removed = true;
@@ -76,15 +76,15 @@ moviePicker.controller('moviePickerController', function($scope){
       }
 
       // Pick from only TV series or full-length features
-      if(!removed) {
-        if($scope.options.movieType && movie["Title type"] != $scope.options.movieType) {
+      if (!removed) {
+        if ($scope.options.movieType && movie["Title type"] != $scope.options.movieType) {
           $scope.movieOptionList.splice(i, 1);
           removed = true;
         }
       }
 
       // Check if movie has a genre matching antiSelections
-      if(!removed) {
+      if (!removed) {
         for(var j in antiSelectionsArray) {
           if (movie && movie.Genres.includes(antiSelectionsArray[j])) {
             $scope.movieOptionList.splice(i, 1);
@@ -95,8 +95,8 @@ moviePicker.controller('moviePickerController', function($scope){
       }
 
       // Check if movie has a genre matching selections
-      if(!removed) {
-        if(selectionsArray.length) {
+      if (!removed) {
+        if (selectionsArray.length) {
           for(var j in selectionsArray) {
             if (movie && movie.Genres.includes(selectionsArray[j])) {
               criteriaMet = true;
@@ -111,16 +111,16 @@ moviePicker.controller('moviePickerController', function($scope){
       }
 
       // Check if movie user rating is above selected level
-      if(!removed) {
-        if($scope.options.userRating && movie["You rated"] < $scope.options.userRating) {
+      if (!removed) {
+        if ($scope.options.userRating && movie["You rated"] < $scope.options.userRating) {
           $scope.movieOptionList.splice(i, 1);
           removed = true;
         }
       }
 
       // Check if movie IMDB rating is above selected level
-      if(!removed) {
-        if($scope.options.IMDbRating && movie["IMDb Rating"] < $scope.options.IMDbRating) {
+      if (!removed) {
+        if ($scope.options.IMDbRating && movie["IMDb Rating"] < $scope.options.IMDbRating) {
           $scope.movieOptionList.splice(i, 1);
           removed = true;
         }
@@ -148,8 +148,8 @@ moviePicker.controller('moviePickerController', function($scope){
       console.warn("Too few options available--returning entire list");
     }
 
-    if($scope.movieChoices.length) {
-      if(online) {$scope.getMovieDetails();}
+    if ($scope.movieChoices.length) {
+      if (online) {$scope.getMovieDetails();}
       $scope.showOptions($scope.movieChoices);
     } else {
       console.warn("No movies match the selected filters");
@@ -162,7 +162,7 @@ moviePicker.controller('moviePickerController', function($scope){
   $scope.getMovieDetails = function() {
     $scope.movieDetailsloading = true;
     var promises = $($scope.movieChoices).map(function(index, movie) {
-      if(movie.const) {
+      if (movie.const) {
         return $.ajax({
           type: "GET",
           url: "http://www.omdbapi.com/?i=" + movie.const + "&plot=short&r=json",
@@ -175,12 +175,12 @@ moviePicker.controller('moviePickerController', function($scope){
 
     $.when.apply($, promises).then(function() {
       for (var i = 0; i < arguments.length; i++) {
-        if(arguments[i][0].Poster && arguments[i][0].Poster !== "N/A") {
+        if (arguments[i][0].Poster && arguments[i][0].Poster !== "N/A") {
           $scope.movieChoices[i].poster = arguments[i][0].Poster;
         } else {
           $scope.movieChoices[i].poster = "assets/img/no-image.png";
         }
-        if(arguments[i][0].Plot && arguments[i][0].Plot !== "N/A") {
+        if (arguments[i][0].Plot && arguments[i][0].Plot !== "N/A") {
           $scope.movieChoices[i].plot = arguments[i][0].Plot;
         } else {
           $scope.movieChoices[i].plot = "No plot";
@@ -191,8 +191,15 @@ moviePicker.controller('moviePickerController', function($scope){
     });
   };
 
+  /**
+  * @function - removeOption removes the move at the selected index from the list of movie choices. If the last result is removed, automatically get another batch of results
+  * @param "int" index - The index of the movie to remove
+  */
   $scope.removeOption = function(index) {
     $scope.movieChoices.splice(index, 1);
+    if ($scope.movieChoices.length === 0) {
+      $scope.helpMeChoose();
+    }
   };
 
   /**
@@ -233,12 +240,12 @@ moviePicker.controller('moviePickerController', function($scope){
   * @param "boolean" setting - Whether an include of exclude filter
   */
   $scope.filterGenre = function(filter, setting) {
-    if(setting) {
-      if($scope.options.selections[filter]) {
+    if (setting) {
+      if ($scope.options.selections[filter]) {
         $scope.options.antiSelections[filter] = false;
       }
     } else {
-      if($scope.options.antiSelections[filter]) {
+      if ($scope.options.antiSelections[filter]) {
         $scope.options.selections[filter] = false;
       }
     }
