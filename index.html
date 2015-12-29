@@ -354,6 +354,15 @@ moviePicker.controller('moviePickerController', function($scope){
             $scope.movieList[i]["You rated"] = parseInt($scope.movieList[i]["You rated"], 10) || null;
           }
           $scope.movieOptionList = $scope.movieList;
+
+          // Apply existing filters to a newly-selected list
+          if (!$.isEmptyObject($scope.options.selections) ||
+              !$.isEmptyObject($scope.options.antiSelections) ||
+              $scope.options.userRating ||
+              $scope.options.IMDbRating) {
+            $scope.helpMeChooseOptions();
+          }
+
           // Apply to get the page content to load
           $scope.$apply();
         },

@@ -1,6 +1,6 @@
 # movie-picker
 
-Simple Angular application that imports, formats, and filters a .csv IMDB user database export. Allows a user to select specific criteria to filter by and pick a random selection as watching options.
+Simple Angular application that imports, formats, and filters a .csv IMDb user database export. Allows a user to select specific criteria to filter by and pick a random selection as watching options.
 
 **Imagine the following:**
 
@@ -14,12 +14,16 @@ Note: Demo is not able to load movie posters because the API blocks requests fro
 How to use:
 ------
 1. Download this repository onto a webserver (locally, WAMP or MAMP work well)
-1. Create a free IMDB account
+1. Create a free IMDb account
 1. Create a new list of titles (http://www.imdb.com/list/create)
 1. Add your movies to your new list (search for movie, click down arrow next to "+ Watchlist", and click the list to add to)
 1. Export your list, and put into the /lists directory (open list, scroll to bottom, and click "Export this list")
 1. Add the filename of your list to the ```$scope.movieLists``` array
 1. Run the app by opening in a browser (ex. http://localhost:8888/movie-picker/)
+
+NOTE: You *could* just download the repo and open index.html in a browser, but you would need to change the URL paths to have them resolve properly
+
+![](assets/demo/help-me-choose.png)
 
 Features:
 ------
@@ -33,6 +37,7 @@ Features:
 - Switch between multiple lists
 - Quick live keyword filtering
 - Selecting a genre filter automatically deselects its cooresponding anti-filter, and vice versa
+- When switching lists with active filters, apply filters after loading
 - Restart "Help me choose" if a user removes all results
 - Ascending/descending sort-ability
 
@@ -44,7 +49,7 @@ ChangeLog:
 
 Technologies:
 ------
-- IMDB
+- IMDb
 - OMDb API
 - Angular
 - jQuery
