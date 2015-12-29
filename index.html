@@ -235,6 +235,15 @@ moviePicker.controller('moviePickerController', function($scope){
   };
 
   /**
+  * @function - orderByFunction is an override of Angular's predicate function, which appeared to have issues with sorting integers
+  * @param "object" movie - The movie currently being filtered
+  * @returns the predicate portion of the movie being filtered
+  */
+  $scope.orderByFunction = function(movie) {
+    return movie[$scope.predicate];
+  };
+
+  /**
   * @function - filterGenre automatically disables the corresponding anti-filter when a filter is selected.
   * @param "string" filter - The filter checkbox that was clicked
   * @param "boolean" setting - Whether an include of exclude filter
@@ -582,7 +591,7 @@ label:hover {
       </tr>
     </thead>
     <tbody>
-      <tr data-ng-repeat="movie in movieOptionList | orderBy:predicate:reverse | filter:searchfilter track by $index">
+      <tr data-ng-repeat="movie in movieOptionList | orderBy:orderByFunction:reverse | filter:searchfilter track by $index">
         <td data-ng-repeat="(key,val) in movie" data-ng-if="columns[key] == true">{{val}}</td>
       </tr>
     </tbody>

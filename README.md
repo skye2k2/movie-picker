@@ -56,6 +56,5 @@ TODO:
 - URL parameters for preset searches
 - Large list performance (bindonce)
 - Load a file by default from URL parameter
-- Make sort by runtime and rating actually work
 - Load CSS from local files if offline
 - Single list isolation mode
