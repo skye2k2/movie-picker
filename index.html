@@ -2,10 +2,28 @@
 <head>
 <title>Movie Picker</title>
 
-<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.4/css/bootstrap.min.css" />
-<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.4/css/bootstrap-theme.min.css" />
+<!-- Load external scripts and styles, falling back to local copies if unreachable or offline -->
 
-<!-- Load external scripts, falling back to local copies if unreachable or offline -->
+<script type="text/javascript">
+function loadCSS(url, localPath) {
+  var url = url,
+      head = document.getElementsByTagName('head')[0],
+      link = document.createElement('link');
+
+  if (!window.navigator.onLine) {
+    url = localPath;
+  }
+
+  link.rel = "stylesheet";
+  link.type = "text/css";
+  link.href = url;
+
+  head.appendChild(link);
+}
+
+loadCSS("//cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.4/css/bootstrap.min.css", "assets/css/bootstrap.min.css");
+loadCSS("//cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.4/css/bootstrap-theme.min.css", "assets/css/bootstrap-theme.min.css");
+</script>
 
 <script src="//cdnjs.cloudflare.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>
 <script type="text/javascript">window.jQuery || document.write('<script src="assets/js/jquery-2.1.4.min.js"><\/script>')</script>
@@ -162,7 +180,7 @@ moviePicker.controller('moviePickerController', function($scope){
   $scope.getMovieDetails = function() {
     $scope.movieDetailsloading = true;
     var promises = $($scope.movieChoices).map(function(index, movie) {
-      if (movie.const) {
+      if (movie.const && window.navigator.onLine) {
         return $.ajax({
           type: "GET",
           url: "http://www.omdbapi.com/?i=" + movie.const + "&plot=short&r=json",

@@ -26,7 +26,7 @@ Features:
 - "Help me choose" randomly picks a number of filtered results as watching options for you
 - Uses OMDb API to fetch movie posters and descriptions in "Help me choose" mode
 - Utilizes cdnjs.cloudflare.com CDN
-- Falls back to local assets when offline (still need to get CSS to work)
+- Falls back to local assets when offline
 - Genre inclusion and exclusion
 - Filter feature films or TV series
 - Limit by user or IMDb rating
@@ -56,5 +56,4 @@ TODO:
 - URL parameters for preset searches
 - Large list performance (bindonce)
 - Load a file by default from URL parameter
-- Load CSS from local files if offline
 - Single list isolation mode
