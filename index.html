@@ -258,7 +258,11 @@ moviePicker.controller('moviePickerController', function($scope){
   * @returns the predicate portion of the movie being filtered
   */
   $scope.orderByFunction = function(movie) {
-    return movie[$scope.predicate];
+    if (movie[$scope.predicate] === null) {
+      return 0;
+    } else {
+      return movie[$scope.predicate];
+    }
   };
 
   /**
