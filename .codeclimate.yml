@@ -11,10 +11,14 @@ engines:
     enabled: true
   fixme:
     enabled: true
+  markdownlint:
+    enabled: true
 ratings:
   paths:
+  - "**.html"
   - "**.css"
   - "**.js"
   - "**.jsx"
 exclude_paths:
-- "**/assets/**/*"
+- assets/
+- lists/
